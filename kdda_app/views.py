@@ -34,7 +34,8 @@ def eventDetail(request, pk):
     images = event.images.all()
     res_event = {"id":event.id, "name":event.name, "images":[]}
     for image in images:
-        res_event["images"].append(image.image.url)
+        image_url = "http://localhost:8000" + image.image.url
+        res_event["images"].append(image_url)
     return Response(res_event)
 
 @api_view(['POST'])
