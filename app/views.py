@@ -15,6 +15,12 @@ def event_list(request):
     serializer = EventSerializer(events, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
+@api_view(['GET'])
+def event_list_with_limit(request):
+    events = Event.objects.all().order_by('-date')[:3]
+    serializer = EventSerializer(events, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
 @api_view(['POST'])
 def event_create(request):
     serializer = EventSerializer(data=request.data)
