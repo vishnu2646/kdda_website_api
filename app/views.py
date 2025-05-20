@@ -4,6 +4,9 @@ from rest_framework import status
 from .models import Event
 from rest_framework.decorators import api_view
 from .serializers import EventSerializer
+from django.core.mail import send_mail
+from django.core.mail import EmailMessage
+from django.conf import settings
 
 # Create your views here.
 @api_view(['GET'])
@@ -50,3 +53,30 @@ def event_delete(request, pk):
         return Response({
             "message": "Event not found."
         }, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['POST'])
+def send_email_api(request):
+    name = request.data.get('name')
+    email = request.data.get('email')
+    message = request.data.get('message')
+
+    if not (name and message and email):
+        return Response({"error": "All fields are required (name, message, email)."}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        subject = f"New message from {name}"
+        body = f"Sender: {name} <{email}>\n\nMessage:\n{message}"
+        to_email = settings.DEFAULT_FROM_EMAIL
+
+        email_message = EmailMessage(
+            subject=subject,
+            body=body,
+            from_email=email,
+            to=[to_email],
+            cc=[email],
+            reply_to=[email],
+        )
+        email_message.send(fail_silently=False)
+        return Response({"message": "Email sent successfully."}, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
